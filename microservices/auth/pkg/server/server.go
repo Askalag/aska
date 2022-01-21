@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/Askalag/aska/microservices/auth/pkg/repository"
 	"github.com/Askalag/aska/microservices/auth/pkg/service"
-	auth_v1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
+	signIn_v1 "github.com/Askalag/protolib/gen/proto/go/sign_in/v1"
 )
 
 type Server struct {
@@ -12,10 +12,10 @@ type Server struct {
 }
 
 type Auth interface {
-	SignIn(req *auth_v1.SignInRequest) (*auth_v1.TokenResponse, error)
+	SignIn(req *signIn_v1.SignInRequest) (*signIn_v1.SignInResponse, error)
 }
 
-func (s *Server) SignIn(context.Context, *auth_v1.SignInRequest) (*auth_v1.TokenResponse, error) {
+func (s *Server) SignIn(context.Context, *signIn_v1.SignInRequest) (*signIn_v1.SignInResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

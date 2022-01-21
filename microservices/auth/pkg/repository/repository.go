@@ -1,6 +1,6 @@
 package repository
 
-import auth_v1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
+import signIn_v1 "github.com/Askalag/protolib/gen/proto/go/sign_in/v1"
 
 type DBConfig struct {
 	Host     string
@@ -17,7 +17,7 @@ type Repo struct {
 
 type AuthRepo interface {
 	Ping() error
-	SignIn(req *auth_v1.SignInRequest) (*auth_v1.TokenResponse, error)
+	SignIn(req *signIn_v1.SignInRequest) (*signIn_v1.SignInResponse, error)
 }
 
 func NewRepo(c *DBConfig) *Repo {

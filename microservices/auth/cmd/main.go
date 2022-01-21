@@ -33,8 +33,8 @@ func main() {
 }
 
 func buildConfig() *AuthConfig {
-	authAddr := flag.String("auth_a", "", "http auth server address")
-	authPort := flag.String("auth_p", "", "http auth port address")
+	authAddr := flag.String("auth_a", "", "http sign_in server address")
+	authPort := flag.String("auth_p", "", "http sign_in port address")
 
 	dbHost := flag.String("dbh", "", "db host address")
 	dbPort := flag.String("dbp", "", "db port address")

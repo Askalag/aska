@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/Askalag/aska/microservices/auth/pkg/repository"
-	auth_v1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
+	signIn_v1 "github.com/Askalag/protolib/gen/proto/go/sign_in/v1"
 )
 
 type AuthService struct {
@@ -13,7 +13,7 @@ func NewAuthService(r *repository.AuthRepo) *AuthService {
 	return &AuthService{authRepo: *r}
 }
 
-func (a *AuthService) SignIn(req *auth_v1.SignInRequest) (*auth_v1.TokenResponse, error) {
+func (a *AuthService) SignIn(req *signIn_v1.SignInRequest) (*signIn_v1.SignInResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
