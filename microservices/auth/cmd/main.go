@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/Askalag/aska/microservices/auth/pkg/repository"
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
@@ -23,17 +25,11 @@ func main() {
 	c := buildConfig()
 
 	initLog()
-	initMigration()
 
-	repo, err := repository.NewRepo(&c.DBConfig)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	initMigration(c.DBConfig)
 
-	err = repo.AuthRepo.Ping()
-	if err != nil {
-		log.Fatalln("ping issue", err.Error())
-	}
+	_ = repository.NewRepo(&c.DBConfig)
+
 }
 
 func buildConfig() *AuthConfig {
@@ -63,14 +59,14 @@ func buildConfig() *AuthConfig {
 	}
 }
 
-func initMigration() {
-	m, err := migrate.New(
-		"file://db/migrations",
-		"postgres://usr:psw@host:5432/test_db?sslmode=disable")
+func initMigration(c repository.DBConfig) {
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		c.Username, c.Password, c.Host, c.Port, c.DBName)
+	m, err := migrate.New("file://db/migrations", dbURL)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := m.Up(); err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		log.Fatal(err)
 	}
 }
