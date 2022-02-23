@@ -2,9 +2,9 @@ package server
 
 import (
 	"context"
-	"github.com/Askalag/aska/microservices/auth/pkg/repository"
 	"github.com/Askalag/aska/microservices/auth/pkg/service"
-	signIn_v1 "github.com/Askalag/protolib/gen/proto/go/sign_in/v1"
+	siv1 "github.com/Askalag/protolib/gen/proto/go/signin/v1"
+	stv1 "github.com/Askalag/protolib/gen/proto/go/status/v1"
 )
 
 type Server struct {
@@ -12,14 +12,10 @@ type Server struct {
 }
 
 type Auth interface {
-	SignIn(req *signIn_v1.SignInRequest) (*signIn_v1.SignInResponse, error)
+	SignIn(req *siv1.SignInRequest) (*siv1.SignInResponse, error)
+	Status(ctx context.Context, res *stv1.StatusRequest) (*stv1.StatusResponse, error)
 }
 
-func (s *Server) SignIn(context.Context, *signIn_v1.SignInRequest) (*signIn_v1.SignInResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func NewServer(r *repository.Repo) (*Server, error) {
-	return &Server{auth: service.NewAuthService(&r.AuthRepo)}, nil
+func NewServer(s *service.Service) (*Server, error) {
+	return &Server{auth: NewAuthServer(&s.Auth)}, nil
 }

@@ -1,14 +1,17 @@
 package repository
 
-import signIn_v1 "github.com/Askalag/protolib/gen/proto/go/sign_in/v1"
+import (
+	"fmt"
+	si1 "github.com/Askalag/protolib/gen/proto/go/signin/v1"
+)
 
 type DBConfig struct {
-	Host     string
-	Port     string
-	Username string
-	Password string
-	DBName   string
-	SSLMode  string
+	host     string
+	port     string
+	username string
+	password string
+	dbName   string
+	sslMode  string
 }
 
 type Repo struct {
@@ -17,7 +20,23 @@ type Repo struct {
 
 type AuthRepo interface {
 	Ping() error
-	SignIn(req *signIn_v1.SignInRequest) (*signIn_v1.SignInResponse, error)
+	SignIn(req *si1.SignInRequest) (*si1.SignInResponse, error)
+}
+
+func (c *DBConfig) BuildConnString(driver string) string {
+	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s",
+		driver, c.username, c.password, c.host, c.port, c.dbName, c.sslMode)
+}
+
+func NewDBConfig(h string, p string, u string, pass string, dbn string, ssl string) *DBConfig {
+	return &DBConfig{
+		host:     h,
+		port:     p,
+		username: u,
+		password: pass,
+		dbName:   dbn,
+		sslMode:  ssl,
+	}
 }
 
 func NewRepo(c *DBConfig) *Repo {

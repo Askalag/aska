@@ -2,7 +2,7 @@ package repository
 
 import (
 	"fmt"
-	signIn_v1 "github.com/Askalag/protolib/gen/proto/go/sign_in/v1"
+	siv1 "github.com/Askalag/protolib/gen/proto/go/signin/v1"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 )
@@ -11,7 +11,7 @@ type PostgresRepo struct {
 	db *sqlx.DB
 }
 
-func (p *PostgresRepo) SignIn(req *signIn_v1.SignInRequest) (*signIn_v1.SignInResponse, error) {
+func (p *PostgresRepo) SignIn(req *siv1.SignInRequest) (*siv1.SignInResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -23,7 +23,7 @@ func (p *PostgresRepo) Ping() error {
 func NewPostgresRepo(dbc DBConfig) *PostgresRepo {
 	sql, err := sqlx.Connect("postgres",
 		fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
-			dbc.Host, dbc.Port, dbc.Username, dbc.DBName, dbc.Password, dbc.SSLMode))
+			dbc.host, dbc.port, dbc.username, dbc.dbName, dbc.password, dbc.sslMode))
 	if err != nil {
 		log.Fatalln(err)
 	}
