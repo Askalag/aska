@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/Askalag/aska/microservices/auth/pkg/repository"
+	"github.com/Askalag/aska/microservices/auth/internal/repository"
 	siv1 "github.com/Askalag/protolib/gen/proto/go/signin/v1"
 )
 

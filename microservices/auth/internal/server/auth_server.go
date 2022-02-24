@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	"github.com/Askalag/aska/microservices/auth/pkg/service"
+	"github.com/Askalag/aska/microservices/auth/internal/service"
 	siv1 "github.com/Askalag/protolib/gen/proto/go/signin/v1"
 	stv1 "github.com/Askalag/protolib/gen/proto/go/status/v1"
 )

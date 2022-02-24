@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"github.com/Askalag/aska/microservices/auth/pkg/provider"
-	"github.com/Askalag/aska/microservices/auth/pkg/repository"
+	"github.com/Askalag/aska/microservices/auth/internal/provider"
+	"github.com/Askalag/aska/microservices/auth/internal/repository"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"

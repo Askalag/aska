@@ -18,6 +18,10 @@ type Repo struct {
 	AuthRepo AuthRepo
 }
 
+type UserRepo interface {
+	getByUsername()
+}
+
 type AuthRepo interface {
 	Ping() error
 	SignIn(req *si1.SignInRequest) (*si1.SignInResponse, error)
