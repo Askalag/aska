@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var sha = "RS256"
+var sha = "HS256"
 
 type JWTProvider interface {
 }
@@ -35,6 +35,18 @@ type AuthClaims struct {
 	*jwt.StandardClaims
 	TokenType string
 	UserInfo  UserInfo
+}
+
+// ParseAndVerifyToken param tokenString should be without "Bearer " ...
+func (p *Provider) ParseAndVerifyToken(tokenString string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Make sure that the token method conform to "SigningMethodHMAC"
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("wrong signed token method")
+		}
+		return []byte(p.config.secret), nil
+	})
+	return token, err
 }
 
 func (p *Provider) CreateToken(u *UserInfo) (string, error) {
