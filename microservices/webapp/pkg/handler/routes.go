@@ -22,7 +22,7 @@ func NewEngine(h *Handler) *gin.Engine {
 
 	api := r.Group("/api")
 	{
-		//signin := api.Group("/signin")
+		//auth := api.Group("/auth")
 		app := api.Group("/app")
 		{
 			app.GET("status", h.app.status)

@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"github.com/Askalag/aska/microservices/auth/internal/service"
-	siv1 "github.com/Askalag/protolib/gen/proto/go/signin/v1"
+	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 	stv1 "github.com/Askalag/protolib/gen/proto/go/status/v1"
 )
 
@@ -11,7 +11,18 @@ type AuthServer struct {
 	auth service.Auth
 }
 
-func (s *AuthServer) SignIn(req *siv1.SignInRequest) (*siv1.SignInResponse, error) {
+func (s *AuthServer) SignUp(req *av1.SignUpRequest) (*av1.SignUpResponse, error) {
+	res, err := s.auth.SignUp(req)
+	if err != nil {
+		return &av1.SignUpResponse{}, err
+	}
+	//TODO CONVERT
+	//TODO implement me
+	//TODO Start from here
+	panic("implement me")
+}
+
+func (s *AuthServer) SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
