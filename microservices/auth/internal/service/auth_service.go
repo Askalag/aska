@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/Askalag/aska/microservices/auth/internal/repository"
-	siv1 "github.com/Askalag/protolib/gen/proto/go/signin/v1"
+	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 )
 
 type AuthService struct {
@@ -13,7 +13,12 @@ func (a *AuthService) Status() (string, error) {
 	return "Auth service is alive", nil
 }
 
-func (a *AuthService) SignIn(req *siv1.SignInRequest) (*siv1.SignInResponse, error) {
+func (a *AuthService) SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AuthService) SignUp(req *av1.SignUpRequest) (*repository.User, error) {
 	//TODO implement me
 	panic("implement me")
 }

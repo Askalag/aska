@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/Askalag/aska/microservices/auth/internal/repository"
 	"github.com/golang-jwt/jwt"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -35,6 +36,16 @@ type AuthClaims struct {
 	*jwt.StandardClaims
 	TokenType string
 	UserInfo  UserInfo
+}
+
+func (p *Provider) VerifyPasswordHash(pass, passHash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(passHash), []byte(pass))
+	return err == nil
+}
+
+func (p *Provider) HashPassword(pass string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(pass), 12)
+	return string(bytes), err
 }
 
 // ParseAndVerifyToken param tokenString should be without "Bearer " ...

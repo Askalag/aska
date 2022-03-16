@@ -43,8 +43,8 @@ func buildConfig() *pkg.Config {
 	// get params from command line
 	addr := flag.String("app_a", "", "http server address")
 	port := flag.String("app_p", "", "http server port")
-	authAddr := flag.String("auth_a", "", "http signin server address")
-	authPort := flag.String("auth_p", "", "http signin port address")
+	authAddr := flag.String("auth_a", "", "http auth server address")
+	authPort := flag.String("auth_p", "", "http auth port address")
 	taskAddr := flag.String("task_a", "", "http task server address")
 	taskPort := flag.String("task_p", "", "http task port address")
 	hsAddr := flag.String("hs_a", "", "http history server address")

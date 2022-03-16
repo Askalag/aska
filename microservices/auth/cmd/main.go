@@ -4,6 +4,8 @@ import (
 	"flag"
 	"github.com/Askalag/aska/microservices/auth/internal/provider"
 	"github.com/Askalag/aska/microservices/auth/internal/repository"
+	"github.com/Askalag/aska/microservices/auth/internal/server"
+	"github.com/Askalag/aska/microservices/auth/internal/service"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -35,14 +37,17 @@ func main() {
 	initMigration(c.DBConfig)
 
 	// init repo, service, jwt providers, servers
-	repo := repository.NewRepo(&c.DBConfig)
-	_ = provider.NewJWTProvider(&c.JWTConfig, &repo.AuthRepo)
+	repos := repository.NewRepo(&c.DBConfig)
+	_ = provider.NewJWTProvider(&c.JWTConfig, &repos.AuthRepo)
+
+	services := service.NewService(repos)
+	_ := server.NewServer(services)
 
 }
 
 func buildConfig() *AuthConfig {
-	authAddr := flag.String("auth_a", "", "http signin server address")
-	authPort := flag.String("auth_p", "", "http signin port address")
+	authAddr := flag.String("auth_a", "", "http sign_in server address")
+	authPort := flag.String("auth_p", "", "http sign_in port address")
 	authKey := flag.String("auth_k", "", "auth security key")
 
 	dbHost := flag.String("dbh", "", "db host address")
@@ -57,7 +62,7 @@ func buildConfig() *AuthConfig {
 	return &AuthConfig{
 		AuthAddr:  *authAddr,
 		AuthPort:  *authPort,
-		JWTConfig: *provider.BuildJWTConfig(*authKey),
+		JWTConfig: *provider.BuildJWTConfig(*authKey, 60),
 		DBConfig: *repository.NewDBConfig(
 			*dbHost,
 			*dbPort,
