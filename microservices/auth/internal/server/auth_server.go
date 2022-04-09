@@ -12,7 +12,7 @@ type AuthServer struct {
 }
 
 func (s *AuthServer) SignUp(req *av1.SignUpRequest) (*av1.SignUpResponse, error) {
-	res, err := s.auth.SignUp(req)
+	_, err := s.auth.SignUp(req)
 	if err != nil {
 		return &av1.SignUpResponse{}, err
 	}
