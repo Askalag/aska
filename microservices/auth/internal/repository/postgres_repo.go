@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 	"github.com/jmoiron/sqlx"
@@ -13,42 +14,67 @@ var (
 )
 
 type User struct {
-	id           int       `db:"id"`
-	login        string    `db:"login"`
-	firstName    string    `db:"f_name"`
-	lastName     string    `db:"l_name"`
-	password     string    `db:"password"`
-	email        string    `db:"email"`
-	active       bool      `db:"active"`
-	dateCreated  time.Time `db:"date_created"`
-	lastModified time.Time `db:"last_modified"`
+	Id           int       `db:"id"`
+	Login        string    `db:"login"`
+	FirstName    string    `db:"f_name"`
+	LastName     string    `db:"l_name"`
+	Password     string    `db:"password"`
+	Email        string    `db:"email"`
+	Active       bool      `db:"active"`
+	DateCreated  time.Time `db:"date_created"`
+	LastModified time.Time `db:"last_modified"`
 }
 
 type PostgresRepo struct {
 	db *sqlx.DB
 }
 
-func (p *PostgresRepo) SignUp(req *av1.SignUpRequest) (*User, error) {
+func (p *PostgresRepo) FindUserByEmail(email string) (*User, error) {
+	u := &User{}
+	err := p.db.Get(u, "select * from aska_db.public.users where email=$1", email)
+	return u, err
+}
+
+func (p *PostgresRepo) FindUserByLogin(login string) (*User, error) {
+	var u *User
+	err := p.db.Get(&u, "select * from aska_db.public.users where login=$1", login)
+	if err != nil {
+		return nil, err
+	}
+	if u == nil {
+		return nil, fmt.Errorf("The User with login: '%s' not found", login)
+	}
+	return u, nil
+}
+
+func (p *PostgresRepo) SignUp(u *User) (*User, error) {
+	user, err := p.FindUserByLogin(u.Login)
+	if err != nil {
+		return nil, err
+	}
+	if user.Login == u.Login {
+		return nil, fmt.Errorf("The User with login: '%s' is already exists", u.Login)
+	}
+
 	var query = fmt.Sprintf(
 		`insert into %v (login, firstName, lastName, password, email) 
 					values (%v, %v, %v, %v, %v)`,
 		userTable,
-		req.Login,
-		req.FirstName,
-		req.LastName,
-		req.Password,
-		req.Email,
+		u.Login,
+		u.FirstName,
+		u.LastName,
+		u.Password,
+		u.Email,
 	)
 
-	user := &User{}
-	u, err := p.db.Query(query)
+	result, err := p.db.Query(query)
 	if err != nil {
 		return user, err
 	}
 
-	err = u.Scan(user)
+	err = result.Scan(&user)
 	if err != nil {
-		return user, err
+		return nil, err
 	}
 
 	return user, nil

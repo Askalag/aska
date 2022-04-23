@@ -21,7 +21,9 @@ type Repo struct {
 type AuthRepo interface {
 	Ping() error
 	SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error)
-	SignUp(req *av1.SignUpRequest) (*User, error)
+	SignUp(req *User) (*User, error)
+	FindUserByLogin(login string) (*User, error)
+	FindUserByEmail(email string) (*User, error)
 }
 
 func (c *DBConfig) BuildConnString(driver string) string {

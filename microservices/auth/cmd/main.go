@@ -38,10 +38,10 @@ func main() {
 
 	// init repo, service, jwt providers, servers
 	repos := repository.NewRepo(&c.DBConfig)
-	_ = provider.NewJWTProvider(&c.JWTConfig, &repos.AuthRepo)
+	prov := provider.NewJWTProvider(&c.JWTConfig, &repos.AuthRepo)
 
-	services := service.NewService(repos)
-	_ := server.NewServer(services)
+	services := service.NewService(repos, prov)
+	_ = server.NewServer(services)
 
 }
 

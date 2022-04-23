@@ -12,44 +12,44 @@ import (
 
 var sha = "HS256"
 
-type JWTProvider interface {
+type Provider interface {
+	CreateToken(u *repository.User) (string, error)
+	ParseAndVerifyToken(tokenString string) (*jwt.Token, error)
+	CreateRefreshToken() string
 }
 
-type Provider struct {
+type JWTProvider struct {
+	Provider
 	config JWTConfig
 	repo   repository.AuthRepo
 }
 
-// JWTConfig tokenAlive - minutes
+// JWTConfig
 type JWTConfig struct {
 	secret     string
 	signKey    *rsa.PrivateKey
 	alg        string
-	tokenAlive int
-}
-
-type UserInfo struct {
-	Username string
+	tokenAlive int // tokenAlive - in minutes
 }
 
 type AuthClaims struct {
 	*jwt.StandardClaims
 	TokenType string
-	UserInfo  UserInfo
+	UserInfo  *repository.User
 }
 
-func (p *Provider) VerifyPasswordHash(pass, passHash string) bool {
+func (p *JWTProvider) VerifyPasswordHash(pass, passHash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(passHash), []byte(pass))
 	return err == nil
 }
 
-func (p *Provider) HashPassword(pass string) (string, error) {
+func (p *JWTProvider) HashPassword(pass string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(pass), 12)
 	return string(bytes), err
 }
 
 // ParseAndVerifyToken param tokenString should be without "Bearer " ...
-func (p *Provider) ParseAndVerifyToken(tokenString string) (*jwt.Token, error) {
+func (p *JWTProvider) ParseAndVerifyToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Make sure that the token method conform to "SigningMethodHMAC"
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -60,8 +60,8 @@ func (p *Provider) ParseAndVerifyToken(tokenString string) (*jwt.Token, error) {
 	return token, err
 }
 
-func (p *Provider) CreateToken(u *UserInfo) (string, error) {
-	if u.Username == "" {
+func (p *JWTProvider) CreateToken(u *repository.User) (string, error) {
+	if u.Login == "" {
 		return "", errors.New("err creating a new token, username invalid")
 	}
 
@@ -76,7 +76,7 @@ func (p *Provider) CreateToken(u *UserInfo) (string, error) {
 	return signedString, nil
 }
 
-func (p *Provider) CreateRefreshToken() string {
+func (p *JWTProvider) CreateRefreshToken() string {
 	arr, err := generateRndBytesArr(32)
 	if err != nil {
 		panic("err creating a new refresh token")
@@ -84,13 +84,13 @@ func (p *Provider) CreateRefreshToken() string {
 	return string(arr)
 }
 
-func buildClaims(u *UserInfo, c JWTConfig) *AuthClaims {
+func buildClaims(u *repository.User, c JWTConfig) *AuthClaims {
 	return &AuthClaims{
 		&jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Minute * time.Duration(c.tokenAlive)).Unix(),
 		},
 		"",
-		*u,
+		u,
 	}
 }
 
@@ -120,8 +120,8 @@ func BuildJWTConfig(secret string, tokenAlive int) *JWTConfig {
 	}
 }
 
-func NewJWTProvider(c *JWTConfig, repo *repository.AuthRepo) *Provider {
-	return &Provider{
+func NewJWTProvider(c *JWTConfig, repo *repository.AuthRepo) *JWTProvider {
+	return &JWTProvider{
 		config: *c,
 		repo:   *repo,
 	}
