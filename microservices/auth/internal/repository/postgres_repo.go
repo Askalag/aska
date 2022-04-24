@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
 	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 	"github.com/jmoiron/sqlx"

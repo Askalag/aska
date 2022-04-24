@@ -11,6 +11,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.0
 	github.com/sirupsen/logrus v1.8.1
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 )
 
 require (

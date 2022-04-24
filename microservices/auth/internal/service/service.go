@@ -16,6 +16,6 @@ type Auth interface {
 	SignUp(req *repository.User) (*av1.SignUpResponse, error)
 }
 
-func NewService(r *repository.Repo, p *provider.Provider) *Service {
-	return &Service{Auth: NewAuthService(&r.AuthRepo, p)}
+func NewService(r *repository.Repo, p provider.Provider) *Service {
+	return &Service{Auth: NewAuthService(&r.AuthRepo, &p)}
 }

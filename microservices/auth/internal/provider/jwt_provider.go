@@ -19,7 +19,6 @@ type Provider interface {
 }
 
 type JWTProvider struct {
-	Provider
 	config JWTConfig
 	repo   repository.AuthRepo
 }

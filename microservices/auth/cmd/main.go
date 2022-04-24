@@ -12,6 +12,7 @@ import (
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"io/ioutil"
 	"os"
 )
 
@@ -48,7 +49,7 @@ func main() {
 func buildConfig() *AuthConfig {
 	authAddr := flag.String("auth_a", "", "http sign_in server address")
 	authPort := flag.String("auth_p", "", "http sign_in port address")
-	authKey := flag.String("auth_k", "", "auth security key")
+	authKey := string(obtainRSAKey("private_rsa.pem"))
 
 	dbHost := flag.String("dbh", "", "db host address")
 	dbPort := flag.String("dbp", "", "db port address")
@@ -62,7 +63,7 @@ func buildConfig() *AuthConfig {
 	return &AuthConfig{
 		AuthAddr:  *authAddr,
 		AuthPort:  *authPort,
-		JWTConfig: *provider.BuildJWTConfig(*authKey, 60),
+		JWTConfig: *provider.BuildJWTConfig(authKey, 60),
 		DBConfig: *repository.NewDBConfig(
 			*dbHost,
 			*dbPort,
@@ -72,6 +73,15 @@ func buildConfig() *AuthConfig {
 			*dbSSL,
 		),
 	}
+}
+
+// obtainRSAKey Read RSA private key (file) for JWTProvider
+func obtainRSAKey(pathToFile string) []byte {
+	bytes, err := ioutil.ReadFile(pathToFile)
+	if err != nil {
+		log.Fatalf("error oppening rsa file: '%s'", pathToFile)
+	}
+	return bytes
 }
 
 func initMigration(c repository.DBConfig) {
