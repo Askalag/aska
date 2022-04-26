@@ -6,13 +6,16 @@ import (
 	"github.com/Askalag/aska/microservices/auth/internal/repository"
 	"github.com/Askalag/aska/microservices/auth/internal/server"
 	"github.com/Askalag/aska/microservices/auth/internal/service"
+	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
 )
 
@@ -42,7 +45,19 @@ func main() {
 	prov := provider.NewJWTProvider(&c.JWTConfig, &repos.AuthRepo)
 
 	services := service.NewService(repos, prov)
-	_ = server.NewServer(services)
+	servers := server.NewServer(services)
+
+	grpcServer := grpc.NewServer()
+	av1.RegisterAuthServiceServer(grpcServer, servers.Auth)
+
+	listener, err := net.Listen("tcp", ":"+c.AuthPort)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := grpcServer.Serve(listener); err != nil {
+		log.Fatalf("failer to serve: '%v'", err)
+	}
 
 }
 

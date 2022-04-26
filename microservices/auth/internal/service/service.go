@@ -14,6 +14,8 @@ type Auth interface {
 	Status() (string, error)
 	SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error)
 	SignUp(req *repository.User) (*av1.SignUpResponse, error)
+	FindUserByLogin(login string) (*repository.User, error)
+	CreateUser(u *repository.User) (int, error)
 }
 
 func NewService(r *repository.Repo, p provider.Provider) *Service {

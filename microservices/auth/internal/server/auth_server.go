@@ -12,15 +12,12 @@ type AuthServer struct {
 	auth service.Auth
 }
 
-func (s *AuthServer) SignUp(req *av1.SignUpRequest) (*av1.SignUpResponse, error) {
-	res, err := s.auth.SignUp(conv.SignUpRequestToUserV1(req))
-	if err != nil {
-		return &av1.SignUpResponse{}, err
-	}
-	return res, nil
+func (s *AuthServer) SignUp(ctx context.Context, req *av1.SignUpRequest) (*av1.SignUpResponse, error) {
+	user := conv.SignUpRequestToUserV1(req)
+	return s.auth.SignUp(user)
 }
 
-func (s *AuthServer) SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error) {
+func (s *AuthServer) SignIn(ctx context.Context, req *av1.SignInRequest) (*av1.SignInResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

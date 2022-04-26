@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/Askalag/aska/microservices/auth/internal/provider"
 	"github.com/Askalag/aska/microservices/auth/internal/repository"
 	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
@@ -11,8 +12,12 @@ type AuthService struct {
 	authProvider provider.Provider
 }
 
-func (a *AuthService) Status() (string, error) {
-	return "Auth service is alive", nil
+func (a *AuthService) FindUserByLogin(login string) (*repository.User, error) {
+	return a.authRepo.FindUserByLogin(login)
+}
+
+func (a *AuthService) CreateUser(u *repository.User) (int, error) {
+	return a.authRepo.CreateUser(u)
 }
 
 func (a *AuthService) SignIn(u *av1.SignInRequest) (*av1.SignInResponse, error) {
@@ -21,10 +26,19 @@ func (a *AuthService) SignIn(u *av1.SignInRequest) (*av1.SignInResponse, error) 
 }
 
 func (a *AuthService) SignUp(u *repository.User) (*av1.SignUpResponse, error) {
-	u, err := a.authRepo.SignUp(u)
+	f, err := a.FindUserByLogin(u.Login)
 	if err != nil {
 		return nil, err
 	}
+	if f != nil && u.Login == f.Login {
+		return nil, fmt.Errorf("The User with login: '%s' is already exists", u.Login)
+	}
+
+	res, err := a.authRepo.CreateUser(u)
+	if err != nil {
+		return nil, err
+	}
+	u.Id = res
 
 	token, err := a.authProvider.CreateToken(u)
 	if err != nil {
@@ -35,6 +49,10 @@ func (a *AuthService) SignUp(u *repository.User) (*av1.SignUpResponse, error) {
 		Token:        token,
 		RefreshToken: "",
 	}, nil
+}
+
+func (a *AuthService) Status() (string, error) {
+	return "Auth service is alive", nil
 }
 
 func NewAuthService(r *repository.AuthRepo, p *provider.Provider) *AuthService {

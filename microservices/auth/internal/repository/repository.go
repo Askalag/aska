@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 )
 
 type DBConfig struct {
@@ -20,10 +19,9 @@ type Repo struct {
 
 type AuthRepo interface {
 	Ping() error
-	SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error)
-	SignUp(req *User) (*User, error)
 	FindUserByLogin(login string) (*User, error)
 	FindUserByEmail(email string) (*User, error)
+	CreateUser(u *User) (int, error)
 }
 
 func (c *DBConfig) BuildConnString(driver string) string {

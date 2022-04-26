@@ -13,8 +13,8 @@ type Server struct {
 
 type Auth interface {
 	Status(ctx context.Context, res *stv1.StatusRequest) (*stv1.StatusResponse, error)
-	SignUp(req *av1.SignUpRequest) (*av1.SignUpResponse, error)
-	SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error)
+	SignUp(ctx context.Context, req *av1.SignUpRequest) (*av1.SignUpResponse, error)
+	SignIn(ctx context.Context, req *av1.SignInRequest) (*av1.SignInResponse, error)
 }
 
 func NewServer(s *service.Service) *Server {

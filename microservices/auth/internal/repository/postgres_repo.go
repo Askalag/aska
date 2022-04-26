@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 	"github.com/jmoiron/sqlx"
@@ -9,7 +10,7 @@ import (
 )
 
 var (
-	userTable = "user"
+	userTable = "users"
 )
 
 type User struct {
@@ -28,55 +29,40 @@ type PostgresRepo struct {
 	db *sqlx.DB
 }
 
+func (p *PostgresRepo) CreateUser(u *User) (int, error) {
+	u.LastModified = time.Now()
+	query := fmt.Sprintf(
+		"INSERT INTO %s "+
+			"(login, f_name, l_name, password, email, last_modified) "+
+			"VALUES "+
+			"('%v', '%v', '%v', '%v', '%v', '%v') "+
+			"RETURNING id",
+		userTable, u.Login, u.FirstName, u.LastName, u.Password, u.Email, u.LastModified.UTC().Format(time.RFC3339Nano))
+	var id int // todo
+	err := p.db.QueryRow(query).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
 func (p *PostgresRepo) FindUserByEmail(email string) (*User, error) {
 	u := &User{}
-	err := p.db.Get(u, "select * from aska_db.public.users where email=$1", email)
+	err := p.db.Get(u, "select * from users where email=$1", email)
 	return u, err
 }
 
 func (p *PostgresRepo) FindUserByLogin(login string) (*User, error) {
-	var u *User
-	err := p.db.Get(&u, "select * from aska_db.public.users where login=$1", login)
+	u := &User{}
+	err := p.db.Get(u, "select * from users where login=$1 LIMIT 1", login)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
-	}
-	if u == nil {
-		return nil, fmt.Errorf("The User with login: '%s' not found", login)
 	}
 	return u, nil
-}
-
-func (p *PostgresRepo) SignUp(u *User) (*User, error) {
-	user, err := p.FindUserByLogin(u.Login)
-	if err != nil {
-		return nil, err
-	}
-	if user.Login == u.Login {
-		return nil, fmt.Errorf("The User with login: '%s' is already exists", u.Login)
-	}
-
-	var query = fmt.Sprintf(
-		`insert into %v (login, firstName, lastName, password, email) 
-					values (%v, %v, %v, %v, %v)`,
-		userTable,
-		u.Login,
-		u.FirstName,
-		u.LastName,
-		u.Password,
-		u.Email,
-	)
-
-	result, err := p.db.Query(query)
-	if err != nil {
-		return user, err
-	}
-
-	err = result.Scan(&user)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
 }
 
 func (p *PostgresRepo) SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error) {
