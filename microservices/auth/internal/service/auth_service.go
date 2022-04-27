@@ -17,6 +17,11 @@ func (a *AuthService) FindUserByLogin(login string) (*repository.User, error) {
 }
 
 func (a *AuthService) CreateUser(u *repository.User) (int, error) {
+	pswHash, err := a.authProvider.HashPassword(u.Password)
+	if err != nil {
+		return 0, err
+	}
+	u.Password = pswHash
 	return a.authRepo.CreateUser(u)
 }
 
@@ -34,11 +39,11 @@ func (a *AuthService) SignUp(u *repository.User) (*av1.SignUpResponse, error) {
 		return nil, fmt.Errorf("The User with login: '%s' is already exists", u.Login)
 	}
 
-	res, err := a.authRepo.CreateUser(u)
+	id, err := a.CreateUser(u)
 	if err != nil {
 		return nil, err
 	}
-	u.Id = res
+	u.Id = id
 
 	token, err := a.authProvider.CreateToken(u)
 	if err != nil {

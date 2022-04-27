@@ -7,7 +7,11 @@ import (
 )
 
 type Service struct {
-	Auth Auth
+	Auth    Auth
+	Session Session
+}
+
+type Session interface {
 }
 
 type Auth interface {

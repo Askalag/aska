@@ -3,6 +3,7 @@ package provider
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
 	"errors"
 	"github.com/Askalag/aska/microservices/auth/internal/repository"
 	"github.com/golang-jwt/jwt"
@@ -10,12 +11,15 @@ import (
 	"time"
 )
 
-var sha = "HS256"
+var (
+	sha = jwt.SigningMethodHS256.Alg()
+)
 
 type Provider interface {
 	CreateToken(u *repository.User) (string, error)
 	ParseAndVerifyToken(tokenString string) (*jwt.Token, error)
 	CreateRefreshToken() string
+	HashPassword(pass string) (string, error)
 }
 
 type JWTProvider struct {
@@ -33,8 +37,7 @@ type JWTConfig struct {
 
 type AuthClaims struct {
 	*jwt.StandardClaims
-	TokenType string
-	UserInfo  *repository.User
+	UserInfo *repository.User
 }
 
 func (p *JWTProvider) VerifyPasswordHash(pass, passHash string) bool {
@@ -54,7 +57,7 @@ func (p *JWTProvider) ParseAndVerifyToken(tokenString string) (*jwt.Token, error
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("wrong signed token method")
 		}
-		return []byte(p.config.secret), nil
+		return x509.MarshalPKCS1PrivateKey(p.config.signKey), nil
 	})
 	return token, err
 }
@@ -66,8 +69,9 @@ func (p *JWTProvider) CreateToken(u *repository.User) (string, error) {
 
 	token := jwt.New(jwt.GetSigningMethod(p.config.alg))
 	token.Claims = buildClaims(u, p.config)
+	mKey := x509.MarshalPKCS1PrivateKey(p.config.signKey)
 
-	signedString, err := token.SignedString(p.config.signKey)
+	signedString, err := token.SignedString(mKey)
 	if err != nil {
 		return "", err
 	}
@@ -88,7 +92,6 @@ func buildClaims(u *repository.User, c JWTConfig) *AuthClaims {
 		&jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Minute * time.Duration(c.tokenAlive)).Unix(),
 		},
-		"",
 		u,
 	}
 }

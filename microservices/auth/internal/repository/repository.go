@@ -14,7 +14,11 @@ type DBConfig struct {
 }
 
 type Repo struct {
-	AuthRepo AuthRepo
+	AuthRepo    AuthRepo
+	SessionRepo SessionRepo
+}
+
+type SessionRepo interface {
 }
 
 type AuthRepo interface {

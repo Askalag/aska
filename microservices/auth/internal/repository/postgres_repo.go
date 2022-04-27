@@ -31,15 +31,16 @@ type PostgresRepo struct {
 
 func (p *PostgresRepo) CreateUser(u *User) (int, error) {
 	u.LastModified = time.Now()
+
 	query := fmt.Sprintf(
 		"INSERT INTO %s "+
 			"(login, f_name, l_name, password, email, last_modified) "+
-			"VALUES "+
-			"('%v', '%v', '%v', '%v', '%v', '%v') "+
+			"VALUES ($1, $2, $3, $4, $5, $6) "+
 			"RETURNING id",
-		userTable, u.Login, u.FirstName, u.LastName, u.Password, u.Email, u.LastModified.UTC().Format(time.RFC3339Nano))
-	var id int // todo
-	err := p.db.QueryRow(query).Scan(&id)
+		userTable)
+
+	var id int
+	err := p.db.QueryRow(query, u.Login, u.FirstName, u.LastName, u.Password, u.Email, u.LastModified).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -48,14 +49,17 @@ func (p *PostgresRepo) CreateUser(u *User) (int, error) {
 
 func (p *PostgresRepo) FindUserByEmail(email string) (*User, error) {
 	u := &User{}
-	err := p.db.Get(u, "select * from users where email=$1", email)
+
+	query := fmt.Sprintf("select * from %s where %s=$1", userTable, "email")
+	err := p.db.Get(u, query, email)
 	return u, err
 }
 
 func (p *PostgresRepo) FindUserByLogin(login string) (*User, error) {
 	u := &User{}
-	err := p.db.Get(u, "select * from users where login=$1 LIMIT 1", login)
 
+	query := fmt.Sprintf("select * from %s where %s=$1", userTable, "login")
+	err := p.db.Get(u, query, login)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -75,11 +79,11 @@ func (p *PostgresRepo) Ping() error {
 }
 
 func NewPostgresRepo(dbc DBConfig) *PostgresRepo {
-	sql, err := sqlx.Connect("postgres",
+	db, err := sqlx.Connect("postgres",
 		fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 			dbc.host, dbc.port, dbc.username, dbc.dbName, dbc.password, dbc.sslMode))
 	if err != nil {
 		log.Fatalln(err)
 	}
-	return &PostgresRepo{db: sql}
+	return &PostgresRepo{db: db}
 }
