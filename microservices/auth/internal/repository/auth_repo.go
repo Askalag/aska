@@ -5,7 +5,6 @@ import (
 	"fmt"
 	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 	"github.com/jmoiron/sqlx"
-	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -25,11 +24,11 @@ type User struct {
 	LastModified time.Time `db:"last_modified"`
 }
 
-type PostgresRepo struct {
+type AuthRepository struct {
 	db *sqlx.DB
 }
 
-func (p *PostgresRepo) CreateUser(u *User) (int, error) {
+func (p *AuthRepository) CreateUser(u *User) (int, error) {
 	u.LastModified = time.Now()
 
 	query := fmt.Sprintf(
@@ -40,14 +39,14 @@ func (p *PostgresRepo) CreateUser(u *User) (int, error) {
 		userTable)
 
 	var id int
-	err := p.db.QueryRow(query, u.Login, u.FirstName, u.LastName, u.Password, u.Email, u.LastModified).Scan(&id)
+	err := p.db.QueryRow(query, u.Login, u.FirstName, u.LastName, u.Password, u.Email, u.LastModified.UTC()).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
 	return id, nil
 }
 
-func (p *PostgresRepo) FindUserByEmail(email string) (*User, error) {
+func (p *AuthRepository) FindUserByEmail(email string) (*User, error) {
 	u := &User{}
 
 	query := fmt.Sprintf("select * from %s where %s=$1", userTable, "email")
@@ -55,7 +54,7 @@ func (p *PostgresRepo) FindUserByEmail(email string) (*User, error) {
 	return u, err
 }
 
-func (p *PostgresRepo) FindUserByLogin(login string) (*User, error) {
+func (p *AuthRepository) FindUserByLogin(login string) (*User, error) {
 	u := &User{}
 
 	query := fmt.Sprintf("select * from %s where %s=$1", userTable, "login")
@@ -69,21 +68,15 @@ func (p *PostgresRepo) FindUserByLogin(login string) (*User, error) {
 	return u, nil
 }
 
-func (p *PostgresRepo) SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error) {
+func (p *AuthRepository) SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p *PostgresRepo) Ping() error {
+func (p *AuthRepository) Ping() error {
 	return p.db.Ping()
 }
 
-func NewPostgresRepo(dbc DBConfig) *PostgresRepo {
-	db, err := sqlx.Connect("postgres",
-		fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
-			dbc.host, dbc.port, dbc.username, dbc.dbName, dbc.password, dbc.sslMode))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return &PostgresRepo{db: db}
+func NewAuthRepo(db *sqlx.DB) *AuthRepository {
+	return &AuthRepository{db: db}
 }

@@ -2,6 +2,8 @@ package repository
 
 import (
 	"fmt"
+	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
 )
 
 type DBConfig struct {
@@ -19,6 +21,9 @@ type Repo struct {
 }
 
 type SessionRepo interface {
+	Create(userId int, ip string) (int, error)
+	Check(uuid string) bool
+	ClearByUserId(userId int) error
 }
 
 type AuthRepo interface {
@@ -45,5 +50,14 @@ func NewDBConfig(h string, p string, u string, pass string, dbn string, ssl stri
 }
 
 func NewRepo(c *DBConfig) *Repo {
-	return &Repo{AuthRepo: NewPostgresRepo(*c)}
+	db, err := sqlx.Connect("postgres",
+		fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
+			c.host, c.port, c.username, c.dbName, c.password, c.sslMode))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return &Repo{
+		AuthRepo:    NewAuthRepo(db),
+		SessionRepo: NewSessionRepo(db),
+	}
 }

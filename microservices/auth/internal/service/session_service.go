@@ -7,3 +7,7 @@ import (
 type SessionService struct {
 	sessionRepo repository.SessionRepo
 }
+
+func (s *SessionService) create(userId int) (*repository.RefreshSession, error) {
+	return nil, nil
+}
