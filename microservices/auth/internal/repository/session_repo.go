@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -34,22 +33,17 @@ func (s *SessionRepository) ClearByUserId(userId int) error {
 	return err
 }
 
-// CheckSession return false if a session is expired or not exists
-func (s *SessionRepository) Check(refreshToken string) bool {
+func (s *SessionRepository) GetSessionByRefToken(refreshToken string) (*RefreshSession, error) {
 	session := &RefreshSession{}
 	query := fmt.Sprintf("SELECT * FROM %s WHERE %s=$1 LIMIT 1", sessionTable, "refresh_token")
 	err := s.db.Get(session, query, refreshToken)
-	if err == sql.ErrNoRows {
-		return false
-	}
 	if err != nil {
-		log.Errorf("error CheckSession with refreshToken: '%s'", refreshToken)
-		return false
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
 	}
-	if time.Now().UTC().After(session.ExpiresIn) {
-		return false
-	}
-	return true
+	return session, nil
 }
 
 func (s *SessionRepository) Create(userId int, ip string) (int, error) {

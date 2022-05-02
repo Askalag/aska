@@ -27,6 +27,11 @@ type JWTProvider struct {
 	repo   repository.AuthRepo
 }
 
+type RefTokenPair struct {
+	Token        string
+	RefreshToken string
+}
+
 // JWTConfig
 type JWTConfig struct {
 	secret     string

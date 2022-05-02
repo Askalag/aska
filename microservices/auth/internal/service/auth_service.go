@@ -6,11 +6,44 @@ import (
 	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"time"
+)
+
+var (
+	errCreateToken               = "error create token"
+	errCommonSessionRepo         = "error common session repo"
+	errRefTokenExpiredOrNotFound = "error refresh token is expired or not found"
 )
 
 type AuthService struct {
 	authRepo     repository.AuthRepo
+	sessionRepo  repository.SessionRepo
 	authProvider provider.Provider
+}
+
+func (a *AuthService) RefreshTokenPair(req *av1.RefreshTokenRequest) (*av1.RefreshTokenResponse, error) {
+	session, err := a.sessionRepo.GetSessionByRefToken(req.RefreshToken)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, errCommonSessionRepo)
+	}
+	if session == nil || time.Now().UTC().After(session.ExpiresIn) {
+		return nil, status.Errorf(codes.NotFound, errRefTokenExpiredOrNotFound)
+	}
+
+	u, err := a.authRepo.FindUserById(session.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := a.authProvider.CreateToken(u)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, errCreateToken)
+	}
+
+	return &av1.RefreshTokenResponse{
+		Token:        token,
+		RefreshToken: session.RefreshToken,
+	}, nil
 }
 
 func (a *AuthService) FindUserByLogin(login string) (*repository.User, error) {
@@ -53,9 +86,10 @@ func (a *AuthService) Status() (string, error) {
 	return "Auth service is alive", nil
 }
 
-func NewAuthService(r *repository.AuthRepo, p *provider.Provider) *AuthService {
+func NewAuthService(r *repository.Repo, p *provider.Provider) *AuthService {
 	return &AuthService{
-		authRepo:     *r,
+		authRepo:     r.AuthRepo,
+		sessionRepo:  r.SessionRepo,
 		authProvider: *p,
 	}
 }

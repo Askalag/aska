@@ -12,6 +12,10 @@ type AuthServer struct {
 	auth service.Auth
 }
 
+func (s *AuthServer) RefreshToken(ctx context.Context, req *av1.RefreshTokenRequest) (*av1.RefreshTokenResponse, error) {
+	return s.auth.RefreshTokenPair(req)
+}
+
 func (s *AuthServer) SignUp(ctx context.Context, req *av1.SignUpRequest) (*av1.SignUpResponse, error) {
 	user := conv.SignUpRequestToUserV1(req)
 	return s.auth.SignUp(user)

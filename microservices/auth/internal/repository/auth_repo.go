@@ -5,16 +5,13 @@ import (
 	"fmt"
 	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 	"github.com/jmoiron/sqlx"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"time"
 )
 
 var (
 	userTable = "users"
 
-	errUserIsNotUnique = "the user is not unique"
-	errCommonSql       = "unknown sql error"
+	errUserIsNotUnique = "this user is not unique"
 )
 
 type User struct {
@@ -33,12 +30,29 @@ type AuthRepository struct {
 	db *sqlx.DB
 }
 
+func (p *AuthRepository) FindUserById(id int) (*User, error) {
+	u := &User{}
+
+	query := fmt.Sprintf("select * from %s where %s=$1", userTable, "id")
+	err := p.db.Get(u, query, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return u, nil
+}
+
 func (p *AuthRepository) CreateUser(u *User) (int, error) {
 	u.LastModified = time.Now()
 
-	isUniq := p.isUserUnique(u)
-	if !isUniq {
-		return 0, status.Errorf(codes.InvalidArgument, errUserIsNotUnique)
+	ok, err := p.isUserUnique(u)
+	if err != nil {
+		return -1, err
+	}
+	if !ok {
+		return -1, fmt.Errorf(errUserIsNotUnique)
 	}
 
 	query := fmt.Sprintf(
@@ -49,37 +63,37 @@ func (p *AuthRepository) CreateUser(u *User) (int, error) {
 		userTable)
 
 	var id int
-	err := p.db.QueryRow(query, u.Login, u.FirstName, u.LastName, u.Password, u.Email, u.LastModified.UTC()).Scan(&id)
+	err = p.db.QueryRow(query, u.Login, u.FirstName, u.LastName, u.Password, u.Email, u.LastModified.UTC()).Scan(&id)
 	if err != nil {
-		return 0, status.Errorf(codes.InvalidArgument, errCommonSql)
+		return -1, err
 	}
 	return id, nil
 }
 
 func (p *AuthRepository) FindUserByEmail(email string) (*User, error) {
 	u := &User{}
-
 	query := fmt.Sprintf("select * from %s where %s=$1", userTable, "email")
+
 	err := p.db.Get(u, query, email)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, status.Errorf(codes.NotFound, err.Error())
+			return nil, nil
 		}
-		return nil, status.Errorf(codes.Unknown, err.Error())
+		return nil, err
 	}
 	return u, nil
 }
 
 func (p *AuthRepository) FindUserByLogin(login string) (*User, error) {
 	u := &User{}
-
 	query := fmt.Sprintf("select * from %s where %s=$1", userTable, "login")
+
 	err := p.db.Get(u, query, login)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, status.Errorf(codes.NotFound, err.Error())
+			return nil, nil
 		}
-		return nil, status.Errorf(codes.Unknown, err.Error())
+		return nil, err
 	}
 	return u, nil
 }
@@ -95,15 +109,19 @@ func (p *AuthRepository) Ping() error {
 
 // isUserUnique return true if a new user has unique values. (see sql table)
 // login, email - is unique
-func (p *AuthRepository) isUserUnique(u *User) bool {
+func (p *AuthRepository) isUserUnique(u *User) (bool, error) {
 	f := &User{}
 	query := fmt.Sprintf("SELECT * from %s where %s=$1 OR %s=$2",
 		userTable, "login", "email")
+
 	err := p.db.Get(f, query, u.Login, u.Email)
-	if err != nil && err == sql.ErrNoRows {
-		return true
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return true, nil
+		}
+		return false, err
 	}
-	return false
+	return false, nil
 }
 
 func NewAuthRepo(db *sqlx.DB) *AuthRepository {

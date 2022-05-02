@@ -13,7 +13,7 @@ type Service struct {
 
 type Session interface {
 	Create(userId int, ip string) (int, error)
-	Check(uuid string) bool
+	GetSessionByRefToken(refreshToken string) (*repository.RefreshSession, error)
 	ClearByUserId(userId int) error
 }
 
@@ -21,13 +21,15 @@ type Auth interface {
 	Status() (string, error)
 	SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error)
 	SignUp(req *repository.User) (*av1.SignUpResponse, error)
+	RefreshTokenPair(req *av1.RefreshTokenRequest) (*av1.RefreshTokenResponse, error)
+
 	FindUserByLogin(login string) (*repository.User, error)
 	CreateUser(u *repository.User) (int, error)
 }
 
 func NewService(r *repository.Repo, p provider.Provider) *Service {
 	return &Service{
-		Auth:    NewAuthService(&r.AuthRepo, &p),
+		Auth:    NewAuthService(r, &p),
 		Session: NewSessionService(&r.SessionRepo),
 	}
 }

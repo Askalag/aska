@@ -22,12 +22,13 @@ type Repo struct {
 
 type SessionRepo interface {
 	Create(userId int, ip string) (int, error)
-	Check(uuid string) bool
+	GetSessionByRefToken(refreshToken string) (*RefreshSession, error)
 	ClearByUserId(userId int) error
 }
 
 type AuthRepo interface {
 	Ping() error
+	FindUserById(id int) (*User, error)
 	FindUserByLogin(login string) (*User, error)
 	FindUserByEmail(email string) (*User, error)
 	CreateUser(u *User) (int, error)
