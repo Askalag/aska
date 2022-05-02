@@ -12,6 +12,9 @@ type Service struct {
 }
 
 type Session interface {
+	Create(userId int, ip string) (int, error)
+	Check(uuid string) bool
+	ClearByUserId(userId int) error
 }
 
 type Auth interface {
@@ -23,5 +26,8 @@ type Auth interface {
 }
 
 func NewService(r *repository.Repo, p provider.Provider) *Service {
-	return &Service{Auth: NewAuthService(&r.AuthRepo, &p)}
+	return &Service{
+		Auth:    NewAuthService(&r.AuthRepo, &p),
+		Session: NewSessionService(&r.SessionRepo),
+	}
 }

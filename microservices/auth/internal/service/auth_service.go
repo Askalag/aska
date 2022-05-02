@@ -1,10 +1,11 @@
 package service
 
 import (
-	"fmt"
 	"github.com/Askalag/aska/microservices/auth/internal/provider"
 	"github.com/Askalag/aska/microservices/auth/internal/repository"
 	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type AuthService struct {
@@ -19,7 +20,7 @@ func (a *AuthService) FindUserByLogin(login string) (*repository.User, error) {
 func (a *AuthService) CreateUser(u *repository.User) (int, error) {
 	pswHash, err := a.authProvider.HashPassword(u.Password)
 	if err != nil {
-		return 0, err
+		return 0, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 	u.Password = pswHash
 	return a.authRepo.CreateUser(u)
@@ -31,14 +32,6 @@ func (a *AuthService) SignIn(u *av1.SignInRequest) (*av1.SignInResponse, error) 
 }
 
 func (a *AuthService) SignUp(u *repository.User) (*av1.SignUpResponse, error) {
-	f, err := a.FindUserByLogin(u.Login)
-	if err != nil {
-		return nil, err
-	}
-	if f != nil && u.Login == f.Login {
-		return nil, fmt.Errorf("The User with login: '%s' is already exists", u.Login)
-	}
-
 	id, err := a.CreateUser(u)
 	if err != nil {
 		return nil, err
