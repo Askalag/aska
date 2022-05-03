@@ -21,9 +21,11 @@ type Repo struct {
 }
 
 type SessionRepo interface {
-	Create(userId int, ip string) (int, error)
+	Create(userId int, ip string) (*RefreshSession, error)
 	GetSessionByRefToken(refreshToken string) (*RefreshSession, error)
 	ClearByUserId(userId int) error
+	GetById(sessionId int) (*RefreshSession, error)
+	DeleteById(sessionId int) error
 }
 
 type AuthRepo interface {

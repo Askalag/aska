@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/Askalag/aska/microservices/auth/internal/provider"
 	"github.com/Askalag/aska/microservices/auth/internal/repository"
 	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 )
@@ -12,9 +11,10 @@ type Service struct {
 }
 
 type Session interface {
-	Create(userId int, ip string) (int, error)
+	Create(userId int, ip string) (*repository.RefreshSession, error)
 	GetSessionByRefToken(refreshToken string) (*repository.RefreshSession, error)
 	ClearByUserId(userId int) error
+	DeleteByIdAndCreate(oldSessionId int, userId int) (*repository.RefreshSession, error)
 }
 
 type Auth interface {
@@ -27,9 +27,9 @@ type Auth interface {
 	CreateUser(u *repository.User) (int, error)
 }
 
-func NewService(r *repository.Repo, p provider.Provider) *Service {
+func NewService(s Session, a Auth) *Service {
 	return &Service{
-		Auth:    NewAuthService(r, &p),
-		Session: NewSessionService(&r.SessionRepo),
+		Auth:    a,
+		Session: s,
 	}
 }

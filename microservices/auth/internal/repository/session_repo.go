@@ -26,6 +26,25 @@ type SessionRepository struct {
 	db *sqlx.DB
 }
 
+func (s *SessionRepository) DeleteById(sessionId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE %s=$1", sessionTable, "id")
+	_, err := s.db.Query(query, sessionId)
+	return err
+}
+
+func (s *SessionRepository) GetById(sessionId int) (*RefreshSession, error) {
+	session := &RefreshSession{}
+	query := fmt.Sprintf("SELECT * FROM %s WHERE %s=$1 LIMIT 1", sessionTable, "id")
+	err := s.db.Get(session, query, sessionId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return session, nil
+}
+
 // clearByUserId deleting all sessions by userId
 func (s *SessionRepository) ClearByUserId(userId int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE %s=$1", sessionTable, "user_id")
@@ -46,7 +65,7 @@ func (s *SessionRepository) GetSessionByRefToken(refreshToken string) (*RefreshS
 	return session, nil
 }
 
-func (s *SessionRepository) Create(userId int, ip string) (int, error) {
+func (s *SessionRepository) Create(userId int, ip string) (*RefreshSession, error) {
 	session := &RefreshSession{
 		UserId:       userId,
 		RefreshToken: uuid.New().String(),
@@ -56,9 +75,22 @@ func (s *SessionRepository) Create(userId int, ip string) (int, error) {
 	query := fmt.Sprintf(
 		"INSERT INTO %s "+
 			"(user_id, refresh_token, expires_in, ip) "+
-			"VALUES ($1, $2, $3, $4) RETURNING id", sessionTable)
-	err := s.db.QueryRow(query, session.UserId, session.RefreshToken, session.ExpiresIn.UTC(), session.Ip).Scan(&session.Id)
-	return session.Id, err
+			"VALUES ($1, $2, $3, $4) RETURNING id, user_id, refresh_token, ip, expires_in, created_at", sessionTable)
+	err := s.db.QueryRow(query, session.UserId, session.RefreshToken, session.ExpiresIn.UTC(), session.Ip).Scan(
+		&session.Id,
+		&session.UserId,
+		&session.RefreshToken,
+		&session.Ip,
+		&session.ExpiresIn,
+		&session.CreatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return session, nil
 }
 
 func NewSessionRepo(db *sqlx.DB) *SessionRepository {

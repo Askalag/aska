@@ -2,13 +2,28 @@ package service
 
 import (
 	"github.com/Askalag/aska/microservices/auth/internal/repository"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type SessionService struct {
 	sessionRepo repository.SessionRepo
 }
 
-func (s *SessionService) Create(userId int, ip string) (int, error) {
+func (s *SessionService) DeleteByIdAndCreate(oldSessionId int, userId int) (*repository.RefreshSession, error) {
+	err := s.sessionRepo.DeleteById(oldSessionId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, errCommonSessionRepo)
+	}
+
+	rs, err := s.sessionRepo.Create(userId, "0.0.0.0")
+	if err != nil || rs == nil {
+		return nil, status.Errorf(codes.Internal, errCommonSessionRepo)
+	}
+	return rs, nil
+}
+
+func (s *SessionService) Create(userId int, ip string) (*repository.RefreshSession, error) {
 	return s.sessionRepo.Create(userId, ip)
 }
 

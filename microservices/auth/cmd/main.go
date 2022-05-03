@@ -40,21 +40,35 @@ func main() {
 	// db migrations
 	initMigration(c.DBConfig)
 
-	// init repo, service, jwt providers, servers
+	// Unit of Work repositories
 	repos := repository.NewRepo(&c.DBConfig)
+
+	// AuthProvider
 	prov := provider.NewJWTProvider(&c.JWTConfig, &repos.AuthRepo)
 
-	services := service.NewService(repos, prov)
+	// services
+	sessionService := service.NewSessionService(&repos.SessionRepo)
+	authService := service.NewAuthService(repos.AuthRepo, prov, sessionService)
+
+	// Unit of Work services
+	services := service.NewService(sessionService, authService)
+
+	// Unit of Work servers
 	servers := server.NewServer(services)
 
+	// GRPCServer
 	grpcServer := grpc.NewServer()
+
+	// Register servers in GRPCServer
 	av1.RegisterAuthServiceServer(grpcServer, servers.Auth)
 
+	// Up Listener
 	listener, err := net.Listen("tcp", ":"+c.AuthPort)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	// Serve GRPC
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failer to serve: '%v'", err)
 	}

@@ -16,13 +16,13 @@ var (
 )
 
 type AuthService struct {
-	authRepo     repository.AuthRepo
-	sessionRepo  repository.SessionRepo
-	authProvider provider.Provider
+	authRepo       repository.AuthRepo
+	sessionService Session
+	authProvider   provider.Provider
 }
 
 func (a *AuthService) RefreshTokenPair(req *av1.RefreshTokenRequest) (*av1.RefreshTokenResponse, error) {
-	session, err := a.sessionRepo.GetSessionByRefToken(req.RefreshToken)
+	session, err := a.sessionService.GetSessionByRefToken(req.RefreshToken)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, errCommonSessionRepo)
 	}
@@ -40,9 +40,14 @@ func (a *AuthService) RefreshTokenPair(req *av1.RefreshTokenRequest) (*av1.Refre
 		return nil, status.Errorf(codes.Internal, errCreateToken)
 	}
 
+	refToken, err := a.sessionService.DeleteByIdAndCreate(session.Id, u.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, errCommonSessionRepo)
+	}
+
 	return &av1.RefreshTokenResponse{
 		Token:        token,
-		RefreshToken: session.RefreshToken,
+		RefreshToken: refToken.RefreshToken,
 	}, nil
 }
 
@@ -86,10 +91,10 @@ func (a *AuthService) Status() (string, error) {
 	return "Auth service is alive", nil
 }
 
-func NewAuthService(r *repository.Repo, p *provider.Provider) *AuthService {
+func NewAuthService(r repository.AuthRepo, p provider.Provider, s Session) *AuthService {
 	return &AuthService{
-		authRepo:     r.AuthRepo,
-		sessionRepo:  r.SessionRepo,
-		authProvider: *p,
+		authRepo:       r,
+		sessionService: s,
+		authProvider:   p,
 	}
 }
