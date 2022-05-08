@@ -16,6 +16,7 @@ var (
 )
 
 type Provider interface {
+	VerifyPasswordHash(pass, passHashed string) bool
 	CreateToken(u *repository.User) (string, error)
 	ParseAndVerifyToken(tokenString string) (*jwt.Token, error)
 	CreateRefreshToken() string
@@ -45,8 +46,8 @@ type AuthClaims struct {
 	UserInfo *repository.User
 }
 
-func (p *JWTProvider) VerifyPasswordHash(pass, passHash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(passHash), []byte(pass))
+func (p *JWTProvider) VerifyPasswordHash(pass, passHashed string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(passHashed), []byte(pass))
 	return err == nil
 }
 

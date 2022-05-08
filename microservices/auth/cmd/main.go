@@ -37,11 +37,11 @@ func main() {
 	// logger
 	initLog()
 
-	// db migrations
-	initMigration(c.DBConfig)
-
 	// Unit of Work repositories
 	repos := repository.NewRepo(&c.DBConfig)
+
+	// db migrations
+	initMigration(c.DBConfig)
 
 	// AuthProvider
 	prov := provider.NewJWTProvider(&c.JWTConfig, &repos.AuthRepo)

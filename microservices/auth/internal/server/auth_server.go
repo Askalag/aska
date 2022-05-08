@@ -22,8 +22,7 @@ func (s *AuthServer) SignUp(ctx context.Context, req *av1.SignUpRequest) (*av1.S
 }
 
 func (s *AuthServer) SignIn(ctx context.Context, req *av1.SignInRequest) (*av1.SignInResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	return s.auth.SignIn(req)
 }
 
 func (s *AuthServer) Status(_ context.Context, _ *stv1.StatusRequest) (*stv1.StatusResponse, error) {

@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
 	"github.com/jmoiron/sqlx"
 	"time"
 )
@@ -96,11 +95,6 @@ func (p *AuthRepository) FindUserByLogin(login string) (*User, error) {
 		return nil, err
 	}
 	return u, nil
-}
-
-func (p *AuthRepository) SignIn(req *av1.SignInRequest) (*av1.SignInResponse, error) {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (p *AuthRepository) Ping() error {

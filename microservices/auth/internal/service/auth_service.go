@@ -1,6 +1,7 @@
 package service
 
 import (
+	conv "github.com/Askalag/aska/microservices/auth/internal/convertor"
 	"github.com/Askalag/aska/microservices/auth/internal/provider"
 	"github.com/Askalag/aska/microservices/auth/internal/repository"
 	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
@@ -12,7 +13,10 @@ import (
 var (
 	errCreateToken               = "error create token"
 	errCommonSessionRepo         = "error common session repo"
+	errCommonAuthRepo            = "error common auth repo"
 	errRefTokenExpiredOrNotFound = "error refresh token is expired or not found"
+	errBadLoginOrPassword        = "error bad login or password"
+	errDeleteSession             = "error delete session"
 )
 
 type AuthService struct {
@@ -65,8 +69,37 @@ func (a *AuthService) CreateUser(u *repository.User) (int, error) {
 }
 
 func (a *AuthService) SignIn(u *av1.SignInRequest) (*av1.SignInResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	user, err := a.authRepo.FindUserByLogin(u.Login)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, errCommonAuthRepo)
+	}
+	if user == nil {
+		return nil, status.Errorf(codes.NotFound, errBadLoginOrPassword)
+	}
+
+	ok := a.authProvider.VerifyPasswordHash(u.Password, user.Password)
+	if !ok {
+		return nil, status.Errorf(codes.Unauthenticated, errBadLoginOrPassword)
+	}
+
+	token, err := a.authProvider.CreateToken(conv.SignInRequestToUserV1(u))
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, errCreateToken)
+	}
+
+	if err = a.sessionService.ClearByUserId(user.Id); err != nil {
+		return nil, status.Errorf(codes.Internal, errDeleteSession)
+	}
+
+	session, err := a.sessionService.Create(user.Id, "0.0.0.0")
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, errCommonSessionRepo)
+	}
+
+	return &av1.SignInResponse{
+		Token:        token,
+		RefreshToken: session.RefreshToken,
+	}, nil
 }
 
 func (a *AuthService) SignUp(u *repository.User) (*av1.SignUpResponse, error) {
