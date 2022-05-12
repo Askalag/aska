@@ -5,7 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"errors"
-	"github.com/Askalag/aska/microservices/auth/internal/repository"
+	"github.com/Askalag/aska/microservices/auth/pkg/repository"
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 	"time"

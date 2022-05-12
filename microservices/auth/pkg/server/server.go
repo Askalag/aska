@@ -2,9 +2,9 @@ package server
 
 import (
 	"context"
-	"github.com/Askalag/aska/microservices/auth/internal/service"
-	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
-	stv1 "github.com/Askalag/protolib/gen/proto/go/status/v1"
+	"github.com/Askalag/aska/microservices/auth/pkg/service"
+	av1 "github.com/Askalag/aska/microservices/auth/proto/auth/v1"
+	stv1 "github.com/Askalag/aska/microservices/auth/proto/status/v1"
 )
 
 type Server struct {

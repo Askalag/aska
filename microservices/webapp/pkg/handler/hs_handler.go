@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	status_v1 "github.com/Askalag/protolib/gen/proto/go/status/v1"
 	"github.com/askalag/aska/microservices/webapp/pkg/service"
+	status_v1 "github.com/askalag/aska/microservices/webapp/proto/status/v1"
 	"github.com/gin-gonic/gin"
 )
 

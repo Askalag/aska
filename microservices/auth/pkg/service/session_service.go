@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/Askalag/aska/microservices/auth/internal/repository"
+	"github.com/Askalag/aska/microservices/auth/pkg/repository"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

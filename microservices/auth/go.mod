@@ -2,10 +2,7 @@ module github.com/Askalag/aska/microservices/auth
 
 go 1.17
 
-replace github.com/Askalag/protolib v1.0.1 => ../../protolib
-
 require (
-	github.com/Askalag/protolib v1.0.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/google/uuid v1.3.0
@@ -14,6 +11,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	google.golang.org/grpc v1.43.0
+	google.golang.org/protobuf v1.28.0
 )
 
 require (
@@ -28,5 +26,4 @@ require (
 	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20211013025323-ce878158c4d4 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
 )

@@ -1,10 +1,10 @@
 package service
 
 import (
-	conv "github.com/Askalag/aska/microservices/auth/internal/convertor"
-	"github.com/Askalag/aska/microservices/auth/internal/provider"
-	"github.com/Askalag/aska/microservices/auth/internal/repository"
-	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
+	conv "github.com/Askalag/aska/microservices/auth/pkg/convertor"
+	"github.com/Askalag/aska/microservices/auth/pkg/provider"
+	"github.com/Askalag/aska/microservices/auth/pkg/repository"
+	av1 "github.com/Askalag/aska/microservices/auth/proto/auth/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"time"

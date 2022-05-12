@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"github.com/Askalag/aska/microservices/history/pkg/service"
-	status_v1 "github.com/Askalag/protolib/gen/proto/go/status/v1"
+	status_v1 "github.com/Askalag/aska/microservices/history/proto/status/v1"
 )
 
 type Server struct {

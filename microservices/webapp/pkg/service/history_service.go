@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	status_v1 "github.com/Askalag/protolib/gen/proto/go/status/v1"
 	"github.com/askalag/aska/microservices/webapp/pkg"
+	status_v1 "github.com/askalag/aska/microservices/webapp/proto/status/v1"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

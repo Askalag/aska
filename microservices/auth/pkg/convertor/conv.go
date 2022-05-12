@@ -1,8 +1,8 @@
 package conv
 
 import (
-	"github.com/Askalag/aska/microservices/auth/internal/repository"
-	av1 "github.com/Askalag/protolib/gen/proto/go/auth/v1"
+	"github.com/Askalag/aska/microservices/auth/pkg/repository"
+	av1 "github.com/Askalag/aska/microservices/auth/proto/auth/v1"
 )
 
 func SignInRequestToUserV1(req *av1.SignInRequest) *repository.User {

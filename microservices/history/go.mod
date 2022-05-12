@@ -2,10 +2,7 @@ module github.com/Askalag/aska/microservices/history
 
 go 1.17
 
-replace github.com/Askalag/protolib v1.0.2 => ../../protolib
-
 require (
-	github.com/Askalag/protolib v1.0.2
 	google.golang.org/grpc v1.43.0
 )
 
