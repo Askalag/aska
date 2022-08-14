@@ -13,6 +13,7 @@ type DBConfig struct {
 	password string
 	dbName   string
 	sslMode  string
+	schema   string
 }
 
 type Repo struct {
@@ -37,11 +38,11 @@ type AuthRepo interface {
 }
 
 func (c *DBConfig) BuildConnString(driver string) string {
-	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s",
-		driver, c.username, c.password, c.host, c.port, c.dbName, c.sslMode)
+	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s&search_path=%s",
+		driver, c.username, c.password, c.host, c.port, c.dbName, c.sslMode, c.schema)
 }
 
-func NewDBConfig(h string, p string, u string, pass string, dbn string, ssl string) *DBConfig {
+func NewDBConfig(h string, p string, u string, pass string, dbn string, ssl string, schema string) *DBConfig {
 	return &DBConfig{
 		host:     h,
 		port:     p,
@@ -49,6 +50,7 @@ func NewDBConfig(h string, p string, u string, pass string, dbn string, ssl stri
 		password: pass,
 		dbName:   dbn,
 		sslMode:  ssl,
+		schema:   schema,
 	}
 }
 

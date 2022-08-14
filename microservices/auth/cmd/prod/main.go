@@ -20,6 +20,7 @@ import (
 )
 
 var dbDriver = "postgres"
+var dbAuthSchema = "auth"
 
 type AuthConfig struct {
 	AuthAddr  string
@@ -31,7 +32,7 @@ type AuthConfig struct {
 const LogFile = "/tmp/auth_log.log"
 
 func main() {
-	// global config
+	// app config
 	c := buildConfig()
 
 	// logger
@@ -86,6 +87,7 @@ func buildConfig() *AuthConfig {
 	dbPass := flag.String("db_psw", "", "db pass")
 	dbName := flag.String("dbn", "", "db name")
 	dbSSL := flag.String("db_ssl", "disable", "db ssl mode")
+	dbSchema := dbAuthSchema
 
 	flag.Parse()
 
@@ -100,6 +102,7 @@ func buildConfig() *AuthConfig {
 			*dbPass,
 			*dbName,
 			*dbSSL,
+			dbSchema,
 		),
 	}
 }

@@ -1,8 +1,8 @@
-create table if not exists users (
+create table if not exists auth.users (
     id serial unique not null,
     login varchar(50) unique not null,
-    f_name varchar(100),
-    l_name varchar(100),
+    first_name varchar(100),
+    last_name varchar(100),
     password varchar(500) not null,
     email varchar(50) unique not null,
     active boolean default true,

@@ -1,1 +1,1 @@
-drop table if exists refresh_session;
+drop table if exists auth.refresh_session;

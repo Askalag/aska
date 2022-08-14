@@ -114,9 +114,14 @@ func (a *AuthService) SignUp(u *repository.User) (*av1.SignUpResponse, error) {
 		return nil, err
 	}
 
+	session, err := a.sessionService.Create(u.Id, "0.0.0.0")
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, errCommonSessionRepo)
+	}
+
 	return &av1.SignUpResponse{
 		Token:        token,
-		RefreshToken: "",
+		RefreshToken: session.RefreshToken,
 	}, nil
 }
 

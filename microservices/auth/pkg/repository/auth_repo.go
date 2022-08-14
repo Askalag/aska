@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	userTable = "users"
+	userTable = "auth.users"
 
 	errUserIsNotUnique = "this user is not unique"
 )
@@ -16,8 +16,8 @@ var (
 type User struct {
 	Id           int       `db:"id"`
 	Login        string    `db:"login"`
-	FirstName    string    `db:"f_name"`
-	LastName     string    `db:"l_name"`
+	FirstName    string    `db:"first_name"`
+	LastName     string    `db:"last_name"`
 	Password     string    `db:"password"`
 	Email        string    `db:"email"`
 	Active       bool      `db:"active"`
@@ -56,7 +56,7 @@ func (p *AuthRepository) CreateUser(u *User) (int, error) {
 
 	query := fmt.Sprintf(
 		"INSERT INTO %s "+
-			"(login, f_name, l_name, password, email, last_modified) "+
+			"(login, first_name, last_name, password, email, last_modified) "+
 			"VALUES ($1, $2, $3, $4, $5, $6) "+
 			"RETURNING id",
 		userTable)

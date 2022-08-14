@@ -58,10 +58,5 @@ func obtainFeeds(pathToFile string) ([]*Feed, error) {
 		return nil, errors.New("error decode from json file")
 	}
 
-	err = file.Close()
-	if err != nil {
-		return nil, errors.New("error try to close opened file")
-	}
-
 	return feeds, nil
 }
