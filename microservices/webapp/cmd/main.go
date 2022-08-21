@@ -5,19 +5,20 @@ import (
 	"fmt"
 	"github.com/askalag/aska/microservices/webapp/pkg"
 	"github.com/askalag/aska/microservices/webapp/pkg/handler"
+	"github.com/askalag/aska/microservices/webapp/pkg/logging"
 	"github.com/askalag/aska/microservices/webapp/pkg/service"
-	log "github.com/sirupsen/logrus"
-	"io"
+	"github.com/sirupsen/logrus"
 	"net/http"
-	"os"
 	"time"
 )
-
-const LogFile = "/tmp/webapi_log.log"
 
 func main() {
 
 	config := buildConfig()
+
+	logging.Initial(config.Log)
+	logrus.Infoln("logger initialized")
+
 	services := service.NewService(config.ServicesTCP)
 	handlers := handler.NewHandler(services)
 	engine := handler.NewEngine(handlers)
@@ -26,20 +27,17 @@ func main() {
 
 }
 
-func startApp(h http.Handler, c *pkg.Config) {
-
-	iniLogger(c.LogFmt, c.LogLevel)
-
+func startApp(h http.Handler, c pkg.Config) {
 	// http server start up
-	log.Infoln("Listen and serve on:", c.ServicesTCP.AppAddr)
+	logrus.Infoln("Listen and serve on:", c.ServicesTCP.AppAddr)
 	server := pkg.NewServer(h, c)
 	err := server.ListenAndServe()
 	if err != nil {
-		log.Fatalln(err.Error())
+		logrus.Fatalln(err.Error())
 	}
 }
 
-func buildConfig() *pkg.Config {
+func buildConfig() pkg.Config {
 	// get params from command line
 	addr := flag.String("app_a", "", "http server address")
 	port := flag.String("app_p", "", "http server port")
@@ -60,43 +58,17 @@ func buildConfig() *pkg.Config {
 		TaskAddr:    fmt.Sprintf("%s:%s", *taskAddr, *taskPort),
 	}
 
-	return &pkg.Config{
+	sLOG := pkg.Logging{
+		Format:   *logFormat,
+		Level:    *logLevel,
+		FilePath: "/tmp/webapi_log.log",
+	}
+
+	return pkg.Config{
 		ServicesTCP:  sTCP,
 		IdleTimeout:  1 * time.Second,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		LogFmt:       *logFormat,
-		LogLevel:     *logLevel,
+		Log:          sLOG,
 	}
-}
-
-func iniLogger(fmt string, lv string) {
-	// log format
-	switch fmt {
-	case "json":
-		log.SetFormatter(&log.JSONFormatter{})
-		log.Infoln("Logger format: json")
-	case "text":
-		log.SetFormatter(&log.TextFormatter{})
-		log.Infoln("Logger format: text")
-	default:
-		log.Warningln("cannot set log format, use default 'text'")
-	}
-
-	// log level
-	level, err := log.ParseLevel(lv)
-	if err != nil {
-		log.Errorln("cannot set log level, use default 'debug'")
-		level = log.DebugLevel
-	} else {
-		log.Infoln("Logger mode level:", level.String())
-	}
-	log.SetLevel(level)
-
-	// log outputs
-	file, err := os.OpenFile(LogFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.SetOutput(io.MultiWriter(file, os.Stdout))
 }

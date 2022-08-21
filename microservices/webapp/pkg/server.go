@@ -12,16 +12,21 @@ type ServicesTCP struct {
 	TaskAddr    string
 }
 
+type Logging struct {
+	Format   string
+	Level    string
+	FilePath string
+}
+
 type Config struct {
 	ServicesTCP  ServicesTCP
 	IdleTimeout  time.Duration
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
-	LogFmt       string
-	LogLevel     string
+	Log          Logging
 }
 
-func NewServer(h http.Handler, c *Config) *http.Server {
+func NewServer(h http.Handler, c Config) *http.Server {
 	return &http.Server{
 		Addr:         c.ServicesTCP.AppAddr,
 		Handler:      h,
