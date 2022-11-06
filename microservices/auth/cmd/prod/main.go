@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"github.com/Askalag/aska/microservices/auth/pkg/provider"
 	"github.com/Askalag/aska/microservices/auth/pkg/repository"
@@ -17,6 +18,9 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 var dbDriver = "postgres"
@@ -32,6 +36,9 @@ type AuthConfig struct {
 const LogFile = "/tmp/auth_log.log"
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer ctx.Done()
+
 	// app config
 	c := buildConfig()
 
@@ -63,17 +70,48 @@ func main() {
 	// Register servers in GRPCServer
 	av1.RegisterAuthServiceServer(grpcServer, servers.Auth)
 
+	// START
+	startApp(ctx, cancel, c, grpcServer)
+}
+
+func startApp(ctx context.Context, cfn context.CancelFunc, cfg *AuthConfig, grpcServer *grpc.Server) {
+
+	go notifySysCall(ctx, cfn)
+	go listenAndServe(grpcServer, cfg)
+
+	<-ctx.Done()
+	log.Println("grpc server shutting down...")
+	grpcServer.GracefulStop()
+	log.Println("app has shutdown")
+}
+
+func listenAndServe(grpc *grpc.Server, cfg *AuthConfig) {
 	// Up Listener
-	listener, err := net.Listen("tcp", ":"+c.AuthPort)
+	listener, err := net.Listen("tcp", "localhost:"+cfg.AuthPort)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	// Serve GRPC
-	if err := grpcServer.Serve(listener); err != nil {
+	if err := grpc.Serve(listener); err != nil {
 		log.Fatalf("failer to serve: '%v'", err)
 	}
+}
 
+func notifySysCall(ctx context.Context, cf context.CancelFunc) {
+	gCtx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
+	defer stop()
+
+	for {
+		select {
+		case <-gCtx.Done():
+			log.Println("syscall received, initiate graceful shutdown")
+			cf()
+			return
+		default:
+			time.Sleep(500 * time.Millisecond)
+			continue
+		}
+	}
 }
 
 func buildConfig() *AuthConfig {
